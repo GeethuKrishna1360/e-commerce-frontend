@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Search,
@@ -11,15 +17,15 @@ import {
   Sparkles,
   Package,
 } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 
 export function Navbar() {
   const { cartCount, wishlist, searchQuery, setSearchQuery } = useCart();
-  const [localSearch, setLocalSearch] = useState(searchQuery);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const profileRef = useRef(null);
-  const searchInputRef = useRef(null);
+  const [localSearch, setLocalSearch] = useState<string>(searchQuery);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,7 +45,7 @@ export function Navbar() {
 
   // Keyboard shortcut '/' to focus search
   useEffect(() => {
-    function handleKeyDown(e) {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "/" && document.activeElement !== searchInputRef.current) {
         e.preventDefault();
         searchInputRef.current?.focus();
@@ -51,8 +57,11 @@ export function Navbar() {
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
         setIsProfileOpen(false);
       }
     }
@@ -60,7 +69,7 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSearchQuery(localSearch);
     if (location.pathname !== "/") {
@@ -74,7 +83,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
       {/* Main Navigation Row */}
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         {/* Left: Mobile Toggle + Logo */}
@@ -88,15 +97,15 @@ export function Navbar() {
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
-              <Sparkles size={18} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm group-hover:scale-105 transition-transform duration-200">
+              <Sparkles size={18} className="text-emerald-400" />
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold tracking-tight text-xl text-slate-900 font-sans leading-none">
-                e<span className="text-indigo-600">.</span>shop
+                e<span className="text-emerald-500">.</span>shop
               </span>
               <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
-                Curated Living
+                Modern Goods
               </span>
             </div>
           </Link>
@@ -115,9 +124,11 @@ export function Navbar() {
               ref={searchInputRef}
               type="text"
               value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setLocalSearch(e.target.value)
+              }
               placeholder="Search products, materials, styles (press '/' to focus)..."
-              className="w-full rounded-full border border-slate-200 bg-slate-50/80 py-2 pl-9 pr-14 text-xs font-medium text-slate-800 placeholder-slate-400 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-full border border-slate-200 bg-slate-50/80 py-2 pl-9 pr-14 text-xs font-medium text-slate-800 placeholder-slate-400 transition-all focus:border-slate-800 focus:bg-white focus:outline-none focus:ring-4 focus:ring-slate-800/10"
             />
             {localSearch ? (
               <button
@@ -141,18 +152,13 @@ export function Navbar() {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Wishlist Icon */}
           <Link
-            to="/"
-            onClick={() => {
-              if (wishlist.length > 0) {
-                // If wishlist has items, toast reminder or scroll
-              }
-            }}
+            to="/wishlist"
             className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             aria-label="Wishlist"
           >
             <Heart size={19} />
             {wishlist.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs">
+              <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-slate-900 px-1 text-[10px] font-bold text-white shadow-xs">
                 {wishlist.length}
               </span>
             )}
@@ -165,7 +171,7 @@ export function Navbar() {
               className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               aria-label="User Account"
             >
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-700">
                 <User size={13} />
               </div>
               <span className="hidden sm:inline">Account</span>
@@ -176,39 +182,40 @@ export function Navbar() {
               <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                 <div className="rounded-xl bg-slate-50 p-3 mb-1">
                   <p className="text-[11px] font-medium text-slate-500">Welcome to e-shop</p>
-                  <p className="text-xs font-bold text-slate-900 mt-0.5">Valued Customer</p>
+                  <p className="text-xs font-bold text-slate-900 mt-0.5">Valued Member</p>
                 </div>
                 <div className="space-y-0.5 text-xs font-medium text-slate-700">
                   <Link
-                    to="/"
+                    to="/orders"
                     onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-slate-900 transition"
                   >
                     <Package size={15} />
                     <span>My Orders</span>
                   </Link>
                   <Link
-                    to="/"
+                    to="/wishlist"
                     onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                    className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-slate-900 transition"
                   >
                     <div className="flex items-center gap-2">
                       <Heart size={15} />
                       <span>Saved Wishlist</span>
                     </div>
                     {wishlist.length > 0 && (
-                      <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-800">
                         {wishlist.length}
                       </span>
                     )}
                   </Link>
                   <div className="border-t border-slate-100 my-1" />
-                  <button
+                  <Link
+                    to="/orders"
                     onClick={() => setIsProfileOpen(false)}
-                    className="w-full text-left rounded-lg px-3 py-2 text-[11px] text-slate-500 hover:text-slate-800"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-[11px] text-slate-500 hover:text-slate-800"
                   >
                     Customer Support & FAQ
-                  </button>
+                  </Link>
                 </div>
               </div>
             )}
@@ -217,13 +224,13 @@ export function Navbar() {
           {/* Cart Pill Button */}
           <Link
             to="/cart"
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600 active:scale-95"
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-95"
             aria-label={`Shopping bag with ${cartCount} items`}
           >
             <div className="relative">
               <ShoppingBag size={15} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-black text-slate-950">
+                <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-400 px-1 text-[9px] font-black text-slate-950">
                   {cartCount}
                 </span>
               )}
@@ -242,9 +249,11 @@ export function Navbar() {
           <input
             type="text"
             value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setLocalSearch(e.target.value)
+            }
             placeholder="Search products..."
-            className="w-full rounded-full border border-slate-200 bg-slate-100/70 py-2 pl-9 pr-9 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none"
+            className="w-full rounded-full border border-slate-200 bg-slate-100/70 py-2 pl-9 pr-9 text-xs text-slate-800 placeholder-slate-400 focus:border-slate-800 focus:bg-white focus:outline-none"
           />
           {localSearch && (
             <button
@@ -270,12 +279,31 @@ export function Navbar() {
               Explore Catalog
             </Link>
             <Link
+              to="/wishlist"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-100"
+            >
+              <span>Saved Wishlist</span>
+              {wishlist.length > 0 && (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-800">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+            <Link
+              to="/orders"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="rounded-lg px-3 py-2 hover:bg-slate-100"
+            >
+              My Orders
+            </Link>
+            <Link
               to="/cart"
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-100"
             >
               <span>View Cart</span>
-              <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white">
                 {cartCount} items
               </span>
             </Link>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
+import type { ShippingAddress, PaymentMethod, Order } from "../types";
 import {
   MapPin,
   CreditCard,
@@ -10,7 +11,6 @@ import {
   Banknote,
   Smartphone,
   Building,
-  CheckCircle2,
 } from "lucide-react";
 
 export function CheckoutPage() {
@@ -21,7 +21,7 @@ export function CheckoutPage() {
     cartOriginalTotal,
     cartDiscount,
     clearCart,
-    setLastOrder,
+    addOrder,
     deliveryEstimate,
   } = useCart();
 
@@ -36,7 +36,7 @@ export function CheckoutPage() {
         </p>
         <Link
           to="/"
-          className="mt-6 rounded-full bg-slate-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-indigo-600 transition"
+          className="mt-6 rounded-full bg-slate-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition"
         >
           Start Shopping
         </Link>
@@ -45,30 +45,30 @@ export function CheckoutPage() {
   }
 
   // Address Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ShippingAddress>({
     fullName: "Priya Sharma",
     phone: "9876543210",
     pincode: "560001",
-    houseNo: "Flat 402, Sunshine Residency",
-    roadName: "MG Road, Near Brigade Towers",
+    street: "Flat 402, Sunshine Residency, MG Road",
     city: "Bengaluru",
     state: "Karnataka",
+    landmark: "Near Brigade Towers",
   });
 
-  const [formErrors, setFormErrors] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShippingAddress, string>>>({});
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+  const [isPlacingOrder, setIsPlacingOrder] = useState<boolean>(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (formErrors[name]) {
+    if (formErrors[name as keyof ShippingAddress]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const validateForm = () => {
-    const errors = {};
+  const validateForm = (): boolean => {
+    const errors: Partial<Record<keyof ShippingAddress, string>> = {};
     if (!formData.fullName.trim()) errors.fullName = "Full Name is required";
     if (!formData.phone.trim() || !/^\d{10}$/.test(formData.phone.trim())) {
       errors.phone = "Enter a valid 10-digit mobile number";
@@ -76,8 +76,7 @@ export function CheckoutPage() {
     if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
       errors.pincode = "Enter a valid 6-digit Pincode";
     }
-    if (!formData.houseNo.trim()) errors.houseNo = "House / Flat number is required";
-    if (!formData.roadName.trim()) errors.roadName = "Street or Colony is required";
+    if (!formData.street.trim()) errors.street = "Street address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
 
@@ -85,7 +84,7 @@ export function CheckoutPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const handlePlaceOrder = (e) => {
+  const handlePlaceOrder = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -99,34 +98,47 @@ export function CheckoutPage() {
     setTimeout(() => {
       const generatedOrderId = `ESH-${Math.floor(100000 + Math.random() * 900000)}`;
 
-      const orderPayload = {
+      const orderPayload: Order = {
         orderId: generatedOrderId,
-        orderDate: new Date().toLocaleDateString("en-IN", {
+        createdAt: new Date().toLocaleDateString("en-IN", {
           day: "numeric",
           month: "short",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
         }),
-        items: [...cart],
-        cartCount,
+        items: cart.map((item) => ({
+          id: item.itemKey,
+          productId: item.id,
+          product: {
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            price: item.price,
+            originalPrice: item.originalPrice,
+            discountPercent: item.discountPercent,
+            rating: 4.8,
+            reviewsCount: 120,
+            images: [item.image],
+            details: {},
+            sizes: [item.selectedSize],
+            description: "",
+            inStock: true,
+            fastDelivery: item.isFreeDelivery,
+          },
+          size: item.selectedSize,
+          quantity: item.quantity,
+        })),
         totalAmount: cartTotal,
-        originalTotal: cartOriginalTotal,
-        discount: cartDiscount,
-        deliveryFee: 0,
-        paymentMethod:
-          paymentMethod === "cod"
-            ? "Cash on Delivery"
-            : paymentMethod === "upi"
-            ? "UPI"
-            : paymentMethod === "card"
-            ? "Card"
-            : "Netbanking",
-        deliveryAddress: { ...formData },
+        subtotal: cartOriginalTotal,
+        discountSavings: cartDiscount,
+        paymentMethod: paymentMethod,
+        address: { ...formData },
         estimatedDelivery: deliveryEstimate || "Delivery within 3-4 Business Days",
+        status: "Order Confirmed",
       };
 
-      setLastOrder(orderPayload);
+      addOrder(orderPayload);
       clearCart();
       setIsPlacingOrder(false);
       navigate("/order-success");
@@ -156,7 +168,7 @@ export function CheckoutPage() {
               <span>1</span> Address
             </span>
             <span className="text-slate-300">&rarr;</span>
-            <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 text-indigo-700 px-3 py-1">
+            <span className="flex items-center gap-1.5 rounded-full bg-slate-200 text-slate-800 px-3 py-1">
               <span>2</span> Payment
             </span>
             <span className="text-slate-300">&rarr;</span>
@@ -174,7 +186,7 @@ export function CheckoutPage() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-xs font-bold text-white">
                     1
                   </div>
-                  <MapPin size={17} className="text-indigo-600" />
+                  <MapPin size={17} className="text-slate-700" />
                   <span>Delivery Address</span>
                 </div>
 
@@ -193,7 +205,7 @@ export function CheckoutPage() {
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
                         formErrors.fullName
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
                     {formErrors.fullName && (
@@ -218,7 +230,7 @@ export function CheckoutPage() {
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
                         formErrors.phone
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
                     {formErrors.phone && (
@@ -228,50 +240,26 @@ export function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* House / Flat / Building */}
+                  {/* Street / Building Address */}
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-bold text-slate-700">
-                      House / Flat / Apartment No. *
+                      Street Address / Flat / Building *
                     </label>
                     <input
                       type="text"
-                      name="houseNo"
-                      value={formData.houseNo}
+                      name="street"
+                      value={formData.street}
                       onChange={handleInputChange}
-                      placeholder="e.g. Flat 402, Sunshine Residency"
+                      placeholder="e.g. Flat 402, Sunshine Residency, MG Road"
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
-                        formErrors.houseNo
+                        formErrors.street
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
-                    {formErrors.houseNo && (
+                    {formErrors.street && (
                       <p className="mt-1 text-[11px] text-red-500 font-medium">
-                        {formErrors.houseNo}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Road / Area / Colony */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Street / Area / Landmark *
-                    </label>
-                    <input
-                      type="text"
-                      name="roadName"
-                      value={formData.roadName}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Near Brigade Towers, MG Road"
-                      className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
-                        formErrors.roadName
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                      }`}
-                    />
-                    {formErrors.roadName && (
-                      <p className="mt-1 text-[11px] text-red-500 font-medium">
-                        {formErrors.roadName}
+                        {formErrors.street}
                       </p>
                     )}
                   </div>
@@ -291,7 +279,7 @@ export function CheckoutPage() {
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
                         formErrors.pincode
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
                     {formErrors.pincode && (
@@ -315,7 +303,7 @@ export function CheckoutPage() {
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
                         formErrors.city
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
                     {formErrors.city && (
@@ -339,7 +327,7 @@ export function CheckoutPage() {
                       className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-xs text-slate-800 transition focus:outline-none ${
                         formErrors.state
                           ? "border-red-500 focus:border-red-500"
-                          : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                          : "border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                       }`}
                     />
                     {formErrors.state && (
@@ -357,7 +345,7 @@ export function CheckoutPage() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-xs font-bold text-white">
                     2
                   </div>
-                  <CreditCard size={17} className="text-indigo-600" />
+                  <CreditCard size={17} className="text-slate-700" />
                   <span>Payment Method</span>
                 </div>
 
@@ -366,7 +354,7 @@ export function CheckoutPage() {
                   <label
                     className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
                       paymentMethod === "cod"
-                        ? "border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500 shadow-xs"
+                        ? "border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-xs"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
@@ -377,7 +365,7 @@ export function CheckoutPage() {
                         value="cod"
                         checked={paymentMethod === "cod"}
                         onChange={() => setPaymentMethod("cod")}
-                        className="accent-emerald-600 h-4 w-4"
+                        className="accent-slate-900 h-4 w-4"
                       />
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -388,13 +376,13 @@ export function CheckoutPage() {
                             Cash on Delivery (COD)
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            Pay in cash or scan QR when delivered
+                            Pay upon delivery via cash or QR scan
                           </p>
                         </div>
                       </div>
                     </div>
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold text-emerald-800">
-                      Recommended
+                      Available
                     </span>
                   </label>
 
@@ -402,7 +390,7 @@ export function CheckoutPage() {
                   <label
                     className={`relative flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
                       paymentMethod === "upi"
-                        ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-xs"
+                        ? "border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-xs"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
@@ -413,10 +401,10 @@ export function CheckoutPage() {
                         value="upi"
                         checked={paymentMethod === "upi"}
                         onChange={() => setPaymentMethod("upi")}
-                        className="accent-indigo-600 h-4 w-4"
+                        className="accent-slate-900 h-4 w-4"
                       />
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                           <Smartphone size={18} />
                         </div>
                         <div>
@@ -429,8 +417,8 @@ export function CheckoutPage() {
                         </div>
                       </div>
                     </div>
-                    <span className="rounded-full bg-amber-50 border border-amber-200/60 px-3 py-1 text-[10px] font-bold text-amber-800">
-                      Online payments via Razorpay coming soon
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
+                      Gateway Ready
                     </span>
                   </label>
 
@@ -438,7 +426,7 @@ export function CheckoutPage() {
                   <label
                     className={`relative flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
                       paymentMethod === "card"
-                        ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-xs"
+                        ? "border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-xs"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
@@ -449,7 +437,7 @@ export function CheckoutPage() {
                         value="card"
                         checked={paymentMethod === "card"}
                         onChange={() => setPaymentMethod("card")}
-                        className="accent-indigo-600 h-4 w-4"
+                        className="accent-slate-900 h-4 w-4"
                       />
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
@@ -465,8 +453,8 @@ export function CheckoutPage() {
                         </div>
                       </div>
                     </div>
-                    <span className="rounded-full bg-amber-50 border border-amber-200/60 px-3 py-1 text-[10px] font-bold text-amber-800">
-                      Online payments via Razorpay coming soon
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
+                      Gateway Ready
                     </span>
                   </label>
 
@@ -474,7 +462,7 @@ export function CheckoutPage() {
                   <label
                     className={`relative flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
                       paymentMethod === "netbanking"
-                        ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-xs"
+                        ? "border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-xs"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
@@ -485,7 +473,7 @@ export function CheckoutPage() {
                         value="netbanking"
                         checked={paymentMethod === "netbanking"}
                         onChange={() => setPaymentMethod("netbanking")}
-                        className="accent-indigo-600 h-4 w-4"
+                        className="accent-slate-900 h-4 w-4"
                       />
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
@@ -501,8 +489,8 @@ export function CheckoutPage() {
                         </div>
                       </div>
                     </div>
-                    <span className="rounded-full bg-amber-50 border border-amber-200/60 px-3 py-1 text-[10px] font-bold text-amber-800">
-                      Online payments via Razorpay coming soon
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
+                      Gateway Ready
                     </span>
                   </label>
                 </div>
@@ -535,7 +523,7 @@ export function CheckoutPage() {
                           </p>
                         </div>
                         <span className="text-xs font-bold text-slate-900">
-                          ₹{item.price * item.quantity}
+                          ₹{(item.price * item.quantity).toLocaleString("en-IN")}
                         </span>
                       </div>
                     ))}
@@ -545,15 +533,17 @@ export function CheckoutPage() {
                   <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 text-xs sm:text-sm">
                     <div className="flex justify-between text-slate-600">
                       <span>Total MRP</span>
-                      <span>₹{cartOriginalTotal.toLocaleString()}</span>
+                      <span>₹{cartOriginalTotal.toLocaleString("en-IN")}</span>
                     </div>
 
-                    <div className="flex justify-between text-slate-600">
-                      <span>Direct Factory Savings</span>
-                      <span className="font-bold text-emerald-600">
-                        - ₹{cartDiscount.toLocaleString()}
-                      </span>
-                    </div>
+                    {cartDiscount > 0 && (
+                      <div className="flex justify-between text-slate-600">
+                        <span>Direct Savings</span>
+                        <span className="font-bold text-emerald-600">
+                          - ₹{cartDiscount.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="flex justify-between text-slate-600">
                       <span>Express Shipping</span>
@@ -565,10 +555,10 @@ export function CheckoutPage() {
                     <div className="border-t border-slate-200 pt-3">
                       <div className="flex justify-between text-base font-extrabold text-slate-900">
                         <span>Total Payable</span>
-                        <span>₹{cartTotal.toLocaleString()}</span>
+                        <span>₹{cartTotal.toLocaleString("en-IN")}</span>
                       </div>
                       <p className="mt-0.5 text-[11px] text-emerald-600 font-semibold">
-                        You save ₹{cartDiscount.toLocaleString()} on this order
+                        You save ₹{cartDiscount.toLocaleString("en-IN")} on this order
                       </p>
                     </div>
                   </div>
@@ -578,7 +568,7 @@ export function CheckoutPage() {
                     <button
                       type="submit"
                       disabled={isPlacingOrder}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-indigo-600 active:scale-98 disabled:opacity-75"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 py-3.5 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-slate-800 active:scale-98 disabled:opacity-75"
                     >
                       {isPlacingOrder ? (
                         <>
@@ -588,7 +578,7 @@ export function CheckoutPage() {
                       ) : (
                         <>
                           <Lock size={15} />
-                          <span>Place Order • ₹{cartTotal.toLocaleString()}</span>
+                          <span>Place Order • ₹{cartTotal.toLocaleString("en-IN")}</span>
                         </>
                       )}
                     </button>

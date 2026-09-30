@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   Smartphone,
@@ -7,12 +6,12 @@ import {
   RotateCcw,
   Sparkles,
 } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 
 export function Footer() {
   const { setSelectedCategory } = useCart();
 
-  const handleCategoryNav = (cat) => {
+  const handleCategoryNav = (cat: string) => {
     setSelectedCategory(cat);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -24,49 +23,49 @@ export function Footer() {
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#4f46e5] text-white shadow-xs">
-                <Truck size={22} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+                <Truck size={20} className="text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Free Delivery</h4>
+                <h4 className="text-sm font-bold text-slate-900">Free Express Delivery</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Zero delivery charges across 28,000+ Indian pincodes.
+                  Zero shipping charges across 28,000+ Indian postal codes.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#059669] text-white shadow-xs">
-                <Sparkles size={22} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+                <Sparkles size={20} className="text-amber-400" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Lowest Prices</h4>
+                <h4 className="text-sm font-bold text-slate-900">Curated Quality</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Direct sourcing from wholesalers and manufacturers.
+                  Direct sourcing and authentic manufacturer warranties.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-xs">
-                <RotateCcw size={22} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+                <RotateCcw size={20} className="text-cyan-400" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-slate-900">7-Day Easy Returns</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Instant refunds and doorstep pickup without questions.
+                  Instant refunds and doorstep pickup without hassle.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-xs">
-                <ShieldCheck size={22} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+                <ShieldCheck size={20} className="text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">100% Safe Payments</h4>
+                <h4 className="text-sm font-bold text-slate-900">Secure Payments</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  COD & upcoming Razorpay secure online gateways.
+                  Cash on Delivery & encrypted 256-bit online checkouts.
                 </p>
               </div>
             </div>
@@ -80,27 +79,24 @@ export function Footer() {
           {/* Col 1: Brand & App Download */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-1.5">
-              <span className="text-3xl font-extrabold tracking-tight font-sans">
-                <span className="text-[#4f46e5]">e</span>
-                <span className="text-slate-900">-shop</span>
+              <span className="text-2xl font-extrabold tracking-tight font-sans text-slate-900">
+                e<span className="text-emerald-500">.</span>shop
               </span>
-              <span className="h-2.5 w-2.5 rounded-full bg-[#06b6d4]" />
             </Link>
             <p className="mt-3 text-xs text-slate-500 leading-relaxed max-w-sm">
-              e-shop is your favourite one-stop online shopping destination
-              for trendy fashion, electronics, and home essentials at
-              unbeatable factory prices.
+              e-shop is a modern digital storefront bringing you high-quality
+              wardrobe staples, functional home living, and engineered audio gear.
             </p>
 
             <div className="mt-5">
-              <p className="text-xs font-bold text-slate-900">Shop on the App</p>
+              <p className="text-xs font-bold text-slate-900">Experience on Mobile</p>
               <div className="mt-2 flex items-center gap-3">
                 <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 cursor-pointer">
-                  <Smartphone size={16} className="text-[#4f46e5]" />
+                  <Smartphone size={16} className="text-slate-900" />
                   <span>Google Play</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 cursor-pointer">
-                  <Smartphone size={16} className="text-[#4f46e5]" />
+                  <Smartphone size={16} className="text-slate-900" />
                   <span>App Store</span>
                 </div>
               </div>
@@ -110,55 +106,63 @@ export function Footer() {
           {/* Col 2: Categories */}
           <div>
             <h5 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              Top Categories
+              Departments
             </h5>
             <ul className="mt-3 space-y-2 text-xs text-slate-600">
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Women Ethnic")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Women's Wear")}
+                  className="hover:text-slate-900"
                 >
-                  Women Ethnic Wear
+                  Women's Wear
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Western Wear")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Men's Wear")}
+                  className="hover:text-slate-900"
                 >
-                  Western Wear
+                  Men's Wear
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Men")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Footwear")}
+                  className="hover:text-slate-900"
                 >
-                  Men's Fashion
+                  Footwear
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Kids")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Accessories")}
+                  className="hover:text-slate-900"
                 >
-                  Kids & Baby Wear
+                  Accessories
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Home & Kitchen")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Home & Living")}
+                  className="hover:text-slate-900"
                 >
-                  Home & Kitchen
+                  Home & Living
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleCategoryNav("Beauty & Footwear")}
-                  className="hover:text-[#4f46e5]"
+                  onClick={() => handleCategoryNav("Tech & Audio")}
+                  className="hover:text-slate-900"
                 >
-                  Beauty & Footwear
+                  Tech & Audio
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleCategoryNav("Beauty & Wellness")}
+                  className="hover:text-slate-900"
+                >
+                  Beauty & Wellness
                 </button>
               </li>
             </ul>
@@ -171,28 +175,28 @@ export function Footer() {
             </h5>
             <ul className="mt-3 space-y-2 text-xs text-slate-600">
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
+                <Link to="/" className="hover:text-slate-900">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
+                <Link to="/" className="hover:text-slate-900">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
-                  Become a Seller
+                <Link to="/" className="hover:text-slate-900">
+                  Become a Partner
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
-                  Our Tech Blog
+                <Link to="/" className="hover:text-slate-900">
+                  Sustainability
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
-                  Hall of Fame
+                <Link to="/" className="hover:text-slate-900">
+                  Press & Media
                 </Link>
               </li>
             </ul>
@@ -205,27 +209,27 @@ export function Footer() {
             </h5>
             <ul className="mt-3 space-y-2 text-xs text-slate-600">
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
+                <Link to="/" className="hover:text-slate-900">
                   Customer Care
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
-                  Shipping & Delivery
+                <Link to="/" className="hover:text-slate-900">
+                  Shipping & Tracking
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
-                  Returns & Refunds
+                <Link to="/" className="hover:text-slate-900">
+                  Returns & Exchanges
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
+                <Link to="/" className="hover:text-slate-900">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/" className="hover:text-[#4f46e5]">
+                <Link to="/" className="hover:text-slate-900">
                   Terms of Service
                 </Link>
               </li>
@@ -235,7 +239,7 @@ export function Footer() {
 
         {/* Bottom copyright */}
         <div className="mt-10 border-t border-slate-100 pt-6 text-center text-xs text-slate-400">
-          <p>© 2026 e-shop. Built with React, Tailwind CSS, and Lucide icons.</p>
+          <p>© 2026 e-shop. Modern Living & Contemporary Goods.</p>
         </div>
       </div>
     </footer>

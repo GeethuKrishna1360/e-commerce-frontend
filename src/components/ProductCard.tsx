@@ -1,19 +1,24 @@
-import React, { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { Star, Heart, ShoppingBag, Check } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
+import type { Product } from "../types";
 
-export function ProductCard({ product }) {
+interface ProductCardProps {
+  product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, toggleWishlist, isWishlisted } = useCart();
-  const [selectedSize, setSelectedSize] = useState(
+  const [selectedSize, setSelectedSize] = useState<string>(
     product.sizes && product.sizes.length > 0 ? product.sizes[0] : "Free Size"
   );
-  const [showSizePicker, setShowSizePicker] = useState(false);
-  const [isAddedAnim, setIsAddedAnim] = useState(false);
+  const [showSizePicker, setShowSizePicker] = useState<boolean>(false);
+  const [isAddedAnim, setIsAddedAnim] = useState<boolean>(false);
 
   const isFavorite = isWishlisted(product.id);
 
-  const handleQuickAdd = (e) => {
+  const handleQuickAdd = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -28,7 +33,10 @@ export function ProductCard({ product }) {
     setTimeout(() => setIsAddedAnim(false), 1200);
   };
 
-  const handleSizeSelectAndAdd = (e, size) => {
+  const handleSizeSelectAndAdd = (
+    e: MouseEvent<HTMLButtonElement>,
+    size: string
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedSize(size);
@@ -47,22 +55,22 @@ export function ProductCard({ product }) {
             src={product.images && product.images[0]}
             alt={product.title}
             loading="lazy"
-            className="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
           />
 
-          {/* Floating Glassmorphic Wishlist Button */}
+          {/* Floating Minimal Wishlist Button */}
           <button
             type="button"
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               e.stopPropagation();
               toggleWishlist(product);
             }}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 backdrop-blur-md shadow-sm transition hover:bg-white hover:scale-110 active:scale-95"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-md shadow-sm transition hover:bg-white hover:scale-110 active:scale-95"
             aria-label="Add to wishlist"
           >
             <Heart
-              size={16}
+              size={15}
               className={
                 isFavorite
                   ? "fill-rose-500 text-rose-500"
@@ -71,14 +79,14 @@ export function ProductCard({ product }) {
             />
           </button>
 
-          {/* Category Tag & Free Delivery Badge */}
+          {/* Category Tag & Discount Badge */}
           <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5">
-            <span className="rounded-full bg-slate-900/75 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-semibold text-white">
+            <span className="rounded-full bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-semibold text-white">
               {product.category}
             </span>
-            {product.discountPercent >= 65 && (
-              <span className="rounded-full bg-emerald-500/90 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
-                {product.discountPercent}% OFF
+            {product.badge && (
+              <span className="rounded-full bg-slate-100/90 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-slate-800 shadow-2xs">
+                {product.badge}
               </span>
             )}
           </div>
@@ -86,17 +94,17 @@ export function ProductCard({ product }) {
 
         {/* Card Body */}
         <div className="p-3.5">
-          {/* Rating Row */}
+          {/* Rating and Delivery Row */}
           <div className="flex items-center gap-1.5 text-xs">
-            <div className="flex items-center gap-1 font-semibold text-slate-800">
-              <Star size={12} className="fill-amber-400 text-amber-400" />
+            <div className="inline-flex items-center gap-0.5 rounded-md bg-emerald-700 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-2xs">
               <span>{product.rating}</span>
+              <Star size={9} className="fill-white text-white" />
             </div>
             <span className="text-[11px] text-slate-400">
               ({product.reviewsCount.toLocaleString()})
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[11px] font-medium text-emerald-600">
+            <span className="text-[11px] font-semibold text-emerald-600">
               Free Delivery
             </span>
           </div>
@@ -104,19 +112,39 @@ export function ProductCard({ product }) {
           {/* Title */}
           <h3
             title={product.title}
-            className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-medium text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors"
+            className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-medium text-slate-800 leading-snug group-hover:text-slate-950 transition-colors"
           >
             {product.title}
           </h3>
 
           {/* Pricing Row */}
-          <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-              ₹{product.price}
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              ₹{product.price.toLocaleString("en-IN")}
             </span>
-            <span className="text-xs text-slate-400 line-through">
-              ₹{product.originalPrice}
+            {product.originalPrice > product.price && (
+              <>
+                <span className="text-xs text-slate-400 line-through">
+                  ₹{product.originalPrice.toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs font-bold text-emerald-600">
+                  {product.discountPercent}% OFF
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Meesho-like Trust Indicator Tags */}
+          <div className="mt-2.5 flex items-center gap-2 border-t border-slate-100 pt-2 text-[10px] text-slate-500">
+            <span className="inline-flex items-center gap-1 font-medium text-slate-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> COD Available
             </span>
+            {product.fastDelivery && (
+              <>
+                <span className="text-slate-300">•</span>
+                <span className="font-medium text-slate-600">⚡ Express Dispatch</span>
+              </>
+            )}
           </div>
         </div>
       </Link>
@@ -126,10 +154,10 @@ export function ProductCard({ product }) {
         {/* Interactive Size Selector Popup */}
         {showSizePicker && (
           <div
-            className="mb-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 p-2.5 text-xs animate-in fade-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
+            className="mb-2.5 rounded-xl border border-slate-200 bg-slate-50/90 p-2.5 text-xs animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
-            <p className="mb-1.5 text-[11px] font-bold text-indigo-900">
+            <p className="mb-1.5 text-[11px] font-bold text-slate-900">
               Select Size:
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -140,8 +168,8 @@ export function ProductCard({ product }) {
                   onClick={(e) => handleSizeSelectAndAdd(e, sz)}
                   className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
                     selectedSize === sz
-                      ? "border-indigo-600 bg-indigo-600 text-white shadow-2xs"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300"
+                      ? "border-slate-900 bg-slate-900 text-white shadow-2xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
                   }`}
                 >
                   {sz}

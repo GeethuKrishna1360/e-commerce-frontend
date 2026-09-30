@@ -1,34 +1,46 @@
-import React, { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CATEGORY_NAV_ITEMS } from "../data/mockProducts";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 import { ChevronDown, Compass } from "lucide-react";
 
 export function CategoryBar() {
   const { selectedCategory, setSelectedCategory, setSearchQuery } = useCart();
-  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleCategoryClick = (categoryName) => {
-    setSelectedCategory(categoryName);
-    setSearchQuery("");
-    if (location.pathname !== "/") {
-      navigate("/");
-    }
+  const scrollToCatalog = () => {
+    setTimeout(() => {
+      const el = document.getElementById("catalog-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
-  const handleSubcategoryClick = (categoryName, subcategory) => {
+  const handleCategoryClick = (categoryName: string) => {
     setSelectedCategory(categoryName);
-    setSearchQuery(subcategory);
+    setSearchQuery("");
+    setHoveredCategory(null);
     if (location.pathname !== "/") {
       navigate("/");
     }
+    scrollToCatalog();
+  };
+
+  const handleSubcategoryClick = (categoryName: string, subcategory: string) => {
+    setSelectedCategory(categoryName);
+    setSearchQuery(subcategory);
     setHoveredCategory(null);
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+    scrollToCatalog();
   };
 
   return (
-    <div className="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xs">
+    <div className="relative border-b border-slate-200/70 bg-white/80 backdrop-blur-xs">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Horizontal Navigation List */}
         <nav className="no-scrollbar flex w-full items-center gap-1.5 overflow-x-auto py-2">
@@ -41,8 +53,11 @@ export function CategoryBar() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
             }`}
           >
-            <Compass size={13} className={selectedCategory === "All" ? "text-cyan-400" : "text-slate-400"} />
-            <span>All Departments</span>
+            <Compass
+              size={13}
+              className={selectedCategory === "All" ? "text-emerald-400" : "text-slate-400"}
+            />
+            <span>All Categories</span>
           </button>
 
           {/* Category Items */}
@@ -61,7 +76,7 @@ export function CategoryBar() {
                   onClick={() => handleCategoryClick(cat.name)}
                   className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
                     isSelected
-                      ? "bg-indigo-600 text-white font-semibold shadow-xs shadow-indigo-600/20"
+                      ? "bg-slate-900 text-white font-semibold shadow-xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
                   }`}
                 >
@@ -77,18 +92,18 @@ export function CategoryBar() {
                 {/* Subcategory Floating Menu */}
                 {isHovered && (
                   <div className="absolute left-0 top-full z-50 mt-1 min-w-[220px] rounded-2xl border border-slate-100 bg-white p-2 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
-                      Top in {cat.name}
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Popular in {cat.name}
                     </div>
                     <div className="mt-1 space-y-0.5">
                       {cat.subcategories.map((sub) => (
                         <button
                           key={sub}
-                          onClick={(e) => {
+                          onClick={(e: MouseEvent<HTMLButtonElement>) => {
                             e.stopPropagation();
                             handleSubcategoryClick(cat.name, sub);
                           }}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition"
                         >
                           <span>{sub}</span>
                         </button>
@@ -96,11 +111,11 @@ export function CategoryBar() {
                     </div>
                     <div className="border-t border-slate-100 mt-2 pt-1.5 px-1">
                       <button
-                        onClick={(e) => {
+                        onClick={(e: MouseEvent<HTMLButtonElement>) => {
                           e.stopPropagation();
                           handleCategoryClick(cat.name);
                         }}
-                        className="w-full text-center rounded-lg py-1.5 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 transition"
+                        className="w-full text-center rounded-lg py-1.5 text-[11px] font-semibold text-slate-900 hover:bg-slate-100 transition"
                       >
                         Explore All {cat.name} &rarr;
                       </button>

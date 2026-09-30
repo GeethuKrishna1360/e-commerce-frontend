@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { Navbar } from "./components/Navbar";
@@ -9,6 +9,8 @@ import { ProductDetailsPage } from "./pages/ProductDetailsPage";
 import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { OrderSuccessPage } from "./pages/OrderSuccessPage";
+import { OrdersPage } from "./pages/OrdersPage";
+import { WishlistPage } from "./pages/WishlistPage";
 
 // Helper component to scroll page to top on route change
 function ScrollToTop() {
@@ -22,7 +24,7 @@ function ScrollToTop() {
 }
 
 // Layout wrapper for all pages
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-[#fafafa] font-sans antialiased text-slate-800">
       <Navbar />
@@ -45,6 +47,8 @@ export function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
             {/* Fallback route */}
             <Route path="*" element={<HomePage />} />
           </Routes>

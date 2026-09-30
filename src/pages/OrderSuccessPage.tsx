@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useEffect, useState, type ComponentType } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../context/useCart";
 import {
   Check,
   Package,
@@ -15,10 +15,17 @@ import {
   CheckCheck,
 } from "lucide-react";
 
+interface TrackingStep {
+  title: string;
+  description: string;
+  status: "completed" | "current" | "upcoming";
+  time: string;
+  icon: ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
+}
+
 export function OrderSuccessPage() {
   const { lastOrder } = useCart();
-  const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -26,37 +33,51 @@ export function OrderSuccessPage() {
 
   const order = lastOrder || {
     orderId: "ESH-948271",
-    orderDate: new Date().toLocaleDateString("en-IN", {
+    createdAt: new Date().toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
     }),
     items: [
       {
-        id: 1,
-        title: "Embroidered Georgette Anarkali Kurta Set With Dupatta",
-        price: 499,
-        originalPrice: 1499,
-        selectedSize: "M",
+        id: "1-M",
+        productId: 1,
+        product: {
+          id: 1,
+          title: "Minimalist Heavyweight Cotton Oversized Tee",
+          category: "Apparel",
+          price: 699,
+          originalPrice: 1499,
+          discountPercent: 53,
+          rating: 4.6,
+          reviewsCount: 1420,
+          images: [
+            "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80",
+          ],
+          details: {},
+          sizes: ["M"],
+          description: "",
+          inStock: true,
+          fastDelivery: true,
+        },
+        size: "M",
         quantity: 1,
-        image:
-          "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
-        supplierName: "Royal Ethnic Creations",
       },
     ],
-    totalAmount: 499,
-    discount: 1000,
-    paymentMethod: "Cash on Delivery",
-    deliveryAddress: {
+    totalAmount: 699,
+    subtotal: 1499,
+    discountSavings: 800,
+    paymentMethod: "cod" as const,
+    address: {
       fullName: "Priya Sharma",
       phone: "9876543210",
-      houseNo: "Flat 402, Sunshine Residency",
-      roadName: "MG Road, Near Brigade Towers",
+      street: "Flat 402, Sunshine Residency, MG Road",
       city: "Bengaluru",
       state: "Karnataka",
       pincode: "560001",
     },
-    estimatedDelivery: "Delivery by Friday, 3 Oct | Free Delivery",
+    estimatedDelivery: "Delivery within 3-4 Business Days | Free Delivery",
+    status: "Order Confirmed" as const,
   };
 
   const copyOrderId = () => {
@@ -65,7 +86,7 @@ export function OrderSuccessPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const trackingSteps = [
+  const trackingSteps: TrackingStep[] = [
     {
       title: "Order Confirmed",
       description: "Direct to maker",
@@ -82,7 +103,7 @@ export function OrderSuccessPage() {
     },
     {
       title: "In Transit",
-      description: "Courier express dispatch",
+      description: "Express courier dispatch",
       status: "upcoming",
       time: "In 2 days",
       icon: Truck,
@@ -105,8 +126,8 @@ export function OrderSuccessPage() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         {/* Celebratory Hero Header */}
         <div className="rounded-3xl border border-slate-200/80 bg-white p-8 sm:p-10 text-center shadow-xs">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white shadow-lg shadow-emerald-500/25 animate-in zoom-in-75 duration-300">
-            <Check size={32} strokeWidth={2.5} />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-900 text-white shadow-md animate-in zoom-in-75 duration-300">
+            <Check size={32} strokeWidth={2.5} className="text-emerald-400" />
           </div>
 
           <h1 className="mt-5 text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -118,22 +139,26 @@ export function OrderSuccessPage() {
           </p>
 
           {/* Order ID Pill with Copy button */}
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50/70 px-4 py-1.5 text-xs font-bold text-indigo-700 shadow-2xs">
-            <Sparkles size={13} />
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-xs font-bold text-slate-800 shadow-2xs">
+            <Sparkles size={13} className="text-emerald-500" />
             <span>Order Reference: {order.orderId}</span>
             <button
               onClick={copyOrderId}
-              className="ml-1 text-indigo-400 hover:text-indigo-800 transition"
+              className="ml-1 text-slate-400 hover:text-slate-800 transition"
               title="Copy Order ID"
             >
-              {copied ? <CheckCheck size={14} className="text-emerald-600" /> : <Copy size={13} />}
+              {copied ? (
+                <CheckCheck size={14} className="text-emerald-600" />
+              ) : (
+                <Copy size={13} />
+              )}
             </button>
           </div>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-7 py-3 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-indigo-600 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-7 py-3 text-xs sm:text-sm font-bold text-white shadow-md transition hover:bg-slate-800 active:scale-95"
             >
               <ShoppingBag size={15} />
               <span>Continue Shopping</span>
@@ -152,7 +177,7 @@ export function OrderSuccessPage() {
         <div className="mt-6 rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Clock size={16} className="text-indigo-600" />
+              <Clock size={16} className="text-slate-700" />
               Delivery Progress
             </h2>
             <span className="text-xs font-semibold text-emerald-600">
@@ -180,7 +205,7 @@ export function OrderSuccessPage() {
                         isDone
                           ? "border-emerald-500 bg-emerald-500 text-white shadow-xs"
                           : isCurrent
-                          ? "border-indigo-600 bg-white text-indigo-600 ring-4 ring-indigo-50"
+                          ? "border-slate-900 bg-white text-slate-900 ring-4 ring-slate-100"
                           : "border-slate-200 bg-white text-slate-400"
                       }`}
                     >
@@ -215,7 +240,7 @@ export function OrderSuccessPage() {
                         isDone
                           ? "border-emerald-500 bg-emerald-500 text-white"
                           : isCurrent
-                          ? "border-indigo-600 bg-white text-indigo-600 ring-2 ring-indigo-50"
+                          ? "border-slate-900 bg-white text-slate-900 ring-2 ring-slate-100"
                           : "border-slate-200 bg-white text-slate-400"
                       }`}
                     >
@@ -249,19 +274,19 @@ export function OrderSuccessPage() {
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-3.5 py-3">
                   <img
-                    src={item.image}
-                    alt={item.title}
+                    src={item.product?.images?.[0] || ""}
+                    alt={item.product?.title || "Product"}
                     className="h-14 w-14 rounded-2xl object-cover shadow-2xs"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-xs font-bold text-slate-900">
-                      {item.title}
+                      {item.product?.title}
                     </p>
                     <p className="text-[11px] text-slate-500">
-                      Size: {item.selectedSize} • Qty: {item.quantity}
+                      Size: {item.size} • Qty: {item.quantity}
                     </p>
                     <p className="text-xs font-extrabold text-slate-900 mt-1">
-                      ₹{item.price * item.quantity}
+                      ₹{((item.product?.price || 0) * item.quantity).toLocaleString("en-IN")}
                     </p>
                   </div>
                 </div>
@@ -272,18 +297,20 @@ export function OrderSuccessPage() {
               <div className="flex justify-between text-slate-600">
                 <span>Total Amount Paid</span>
                 <span className="font-extrabold text-slate-900">
-                  ₹{order.totalAmount.toLocaleString()}
+                  ₹{order.totalAmount.toLocaleString("en-IN")}
                 </span>
               </div>
-              <div className="flex justify-between text-emerald-600">
-                <span>Total Savings</span>
-                <span className="font-bold">
-                  ₹{(order.discount || 0).toLocaleString()}
-                </span>
-              </div>
+              {order.discountSavings > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Total Savings</span>
+                  <span className="font-bold">
+                    ₹{order.discountSavings.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-600">
                 <span>Payment Mode</span>
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-slate-900 uppercase">
                   {order.paymentMethod}
                 </span>
               </div>
@@ -294,32 +321,31 @@ export function OrderSuccessPage() {
           <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs flex flex-col justify-between">
             <div>
               <h3 className="border-b border-slate-100 pb-3 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <MapPin size={15} className="text-indigo-600" />
+                <MapPin size={15} className="text-slate-700" />
                 Shipping Destination
               </h3>
               <div className="mt-3.5 text-xs leading-relaxed text-slate-700 space-y-1">
                 <p className="font-bold text-slate-900 text-sm">
-                  {order.deliveryAddress.fullName}
+                  {order.address.fullName}
                 </p>
-                <p>{order.deliveryAddress.houseNo}</p>
-                <p>{order.deliveryAddress.roadName}</p>
+                <p>{order.address.street}</p>
                 <p>
-                  {order.deliveryAddress.city}, {order.deliveryAddress.state} -{" "}
+                  {order.address.city}, {order.address.state} -{" "}
                   <strong className="text-slate-900">
-                    {order.deliveryAddress.pincode}
+                    {order.address.pincode}
                   </strong>
                 </p>
                 <p className="text-slate-400 pt-1">
-                  Contact: +91 {order.deliveryAddress.phone}
+                  Contact: +91 {order.address.phone}
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 rounded-2xl bg-indigo-50/70 p-3.5 text-xs text-indigo-900 border border-indigo-100">
-              <p className="font-bold flex items-center gap-1.5 text-indigo-700">
-                <Truck size={14} /> Estimated Arrival
+            <div className="mt-6 rounded-2xl bg-slate-50 p-3.5 text-xs text-slate-800 border border-slate-200">
+              <p className="font-bold flex items-center gap-1.5 text-slate-900">
+                <Truck size={14} className="text-emerald-600" /> Estimated Arrival
               </p>
-              <p className="mt-1 text-slate-600 text-[11px]">
+              <p className="mt-1 text-slate-500 text-[11px]">
                 {order.estimatedDelivery}
               </p>
             </div>
